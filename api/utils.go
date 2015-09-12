@@ -131,6 +131,8 @@ func hijack(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *http.R
 	if err != nil {
 		return err
 	}
+	defer d.Close()
+
 	hj, ok := w.(http.Hijacker)
 	if !ok {
 		return err
@@ -140,7 +142,6 @@ func hijack(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *http.R
 		return err
 	}
 	defer nc.Close()
-	defer d.Close()
 
 	err = r.Write(d)
 	if err != nil {
