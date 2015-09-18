@@ -5,6 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
+	dockerfilters "github.com/docker/docker/pkg/parsers/filters"
+	"github.com/docker/swarm/cluster"
+	"github.com/docker/swarm/version"
+	"github.com/gorilla/mux"
+	"github.com/samalba/dockerclient"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,12 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	dockerfilters "github.com/docker/docker/pkg/parsers/filters"
-	"github.com/docker/swarm/cluster"
-	"github.com/docker/swarm/version"
-	"github.com/gorilla/mux"
-	"github.com/samalba/dockerclient"
 )
 
 // The Client API version
@@ -181,6 +181,7 @@ func getVolumes(c *context, w http.ResponseWriter, r *http.Request) {
 // GET /containers/ps
 // GET /containers/json
 func getContainersJSON(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("getContainersJSON")
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -323,6 +324,7 @@ func getContainersJSON(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /containers/{name:.*}/json
 func getContainerJSON(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("getContainerJSON")
 	name := mux.Vars(r)["name"]
 	container := c.cluster.Container(name)
 	if container == nil {
@@ -365,6 +367,7 @@ func getContainerJSON(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /containers/create
 func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("postContainersCreate")
 	r.ParseForm()
 	var (
 		config dockerclient.ContainerConfig
@@ -394,6 +397,7 @@ func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
 
 // DELETE /containers/{name:.*}
 func deleteContainers(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("deleteContainers")
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -562,6 +566,7 @@ func deleteImages(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /_ping
 func ping(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("ping")
 	w.Write([]byte{'O', 'K'})
 }
 
@@ -577,6 +582,7 @@ func proxyVolume(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to the right node
 func proxyContainer(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyContainer")
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -595,6 +601,7 @@ func proxyContainer(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to the right node and force refresh container
 func proxyContainerAndForceRefresh(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyContainerAndForceRefresh")
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -666,6 +673,7 @@ func postTagImage(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to a random node
 func proxyRandom(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyRandom")
 	engine, err := c.cluster.RANDOMENGINE()
 	if err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
@@ -785,6 +793,7 @@ func postRenameContainer(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a hijack request to the right node
 func proxyHijack(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyHijack")
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)

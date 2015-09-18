@@ -78,6 +78,7 @@ func closeIdleConnections(client *http.Client) {
 }
 
 func proxyAsync(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *http.Request, callback func(*http.Response)) error {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyAsync")
 	// Use a new client for each request
 	client, scheme := newClientAndScheme(tlsConfig)
 	// RequestURI may not be sent to client
@@ -89,6 +90,7 @@ func proxyAsync(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *ht
 	log.WithFields(log.Fields{"method": r.Method, "url": r.URL}).Debug("Proxy request")
 	resp, err := client.Do(r)
 	if err != nil {
+		log.WithFields(log.Fields{"request": r, "error": err}).Error("proxyAsync:client.Do(r)")
 		return err
 	}
 
@@ -102,8 +104,9 @@ func proxyAsync(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *ht
 
 	// cleanup
 	resp.Body.Close()
+	log.WithFields(log.Fields{"method": r.Method, "url": r.URL}).Debug("Proxy request: closeIdleConnections(client)....")
 	closeIdleConnections(client)
-
+	log.WithFields(log.Fields{"method": r.Method, "url": r.URL}).Debug("Proxy request: closeIdleConnections(client)....Done")
 	return nil
 }
 
@@ -112,6 +115,7 @@ func proxy(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *http.Re
 }
 
 func hijack(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *http.Request) error {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("utils/hijack")
 	if parts := strings.SplitN(addr, "://", 2); len(parts) == 2 {
 		addr = parts[1]
 	}
