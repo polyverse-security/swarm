@@ -72,7 +72,9 @@ func copyHeader(dst, src http.Header) {
 
 // prevents leak with https
 func closeIdleConnections(client *http.Client) {
+	log.WithFields(log.Fields{"client": fmt.Sprintf("%+v", client)}).Debug("closeIdleConnections")
 	if tr, ok := client.Transport.(*http.Transport); ok {
+		log.WithFields(log.Fields{"client": fmt.Sprintf("%+v", client)}).Debug("closeIdleConnections - it is *http.Client, attempting to close connections")
 		tr.CloseIdleConnections()
 	}
 }
@@ -86,7 +88,7 @@ func proxyAsync(tlsConfig *tls.Config, addr string, w http.ResponseWriter, r *ht
 
 	r.URL.Scheme = scheme
 	r.URL.Host = addr
-
+	r.Close = true
 	log.WithFields(log.Fields{"method": r.Method, "url": r.URL}).Debug("Proxy request")
 	resp, err := client.Do(r)
 	if err != nil {
