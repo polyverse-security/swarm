@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/swarm/cluster"
+	"github.com/polyverse-security/swarm/cluster"
 )
 
 // Emit an HTTP error and log it.

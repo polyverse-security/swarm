@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/docker/swarm/cluster"
+	"github.com/polyverse-security/swarm/cluster"
 	"github.com/gorilla/mux"
 )
 
@@ -113,7 +113,7 @@ func NewPrimary(cluster cluster.Cluster, tlsConfig *tls.Config, status StatusHan
 			localRoute := route
 			localFct := fct
 			wrap := func(w http.ResponseWriter, r *http.Request) {
-				log.WithFields(log.Fields{"method": r.Method, "uri": r.RequestURI}).Debug("HTTP request received")
+				log.WithFields(log.Fields{"method": r.Method, "uri": r.RequestURI}).Debug("Swarm HTTP request received")
 				if enableCors {
 					writeCorsHeaders(w, r)
 				}

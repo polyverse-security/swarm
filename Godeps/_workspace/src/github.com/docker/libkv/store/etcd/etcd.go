@@ -8,6 +8,8 @@ import (
 	"time"
 
 	etcd "github.com/coreos/go-etcd/etcd"
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/docker/libkv/store"
 )
 
@@ -382,6 +384,7 @@ func (s *Etcd) DeleteTree(directory string) error {
 // NewLock returns a handle to a lock struct which can
 // be used to provide mutual exclusion on a key
 func (s *Etcd) NewLock(key string, options *store.LockOptions) (lock store.Locker, err error) {
+	log.Info("NewLock()")
 	var value string
 	ttl := uint64(time.Duration(defaultLockTTL).Seconds())
 
@@ -410,6 +413,7 @@ func (s *Etcd) NewLock(key string, options *store.LockOptions) (lock store.Locke
 // doing so. It returns a channel that is closed if our
 // lock is lost or if an error occurs
 func (l *etcdLock) Lock() (<-chan struct{}, error) {
+	log.Info("Lock()")
 
 	key := store.Normalize(l.key)
 
@@ -435,12 +439,14 @@ func (l *etcdLock) Lock() (<-chan struct{}, error) {
 		l.last, err = l.client.CompareAndSwap(key, l.value, l.ttl, "", lastIndex)
 
 		if err == nil {
+			log.Info("holdLock - Leader section")
 			// Leader section
 			l.stopLock = stopLocking
 			go l.holdLock(key, lockHeld, stopLocking)
 			break
 		} else {
 			// Seeker section
+			log.Info("waitLock - Seeker section")
 			chW := make(chan *etcd.Response)
 			chWStop := make(chan bool)
 			l.waitLock(key, chW, chWStop)
@@ -457,6 +463,7 @@ func (l *etcdLock) Lock() (<-chan struct{}, error) {
 // Updates the key ttl periodically until we receive
 // an explicit stop signal from the Unlock method
 func (l *etcdLock) holdLock(key string, lockHeld chan struct{}, stopLocking chan struct{}) {
+	log.Info("holdLock()")
 	defer close(lockHeld)
 
 	update := time.NewTicker(defaultUpdateTime)
@@ -467,12 +474,15 @@ func (l *etcdLock) holdLock(key string, lockHeld chan struct{}, stopLocking chan
 	for {
 		select {
 		case <-update.C:
+			log.Infof("holdLock CompareAndSwap selected by ticker: %+v",update)
 			l.last, err = l.client.CompareAndSwap(key, l.value, l.ttl, "", l.last.Node.ModifiedIndex)
 			if err != nil {
+				log.Infof("holdLock err: %+v",err)
 				return
 			}
 
 		case <-stopLocking:
+			log.Info("holdLock stopLocking")
 			return
 		}
 	}
@@ -491,6 +501,7 @@ func (l *etcdLock) waitLock(key string, eventCh chan *etcd.Response, stopWatchCh
 // Unlock the "key". Calling unlock while
 // not holding the lock will throw an error
 func (l *etcdLock) Unlock() error {
+	log.Info("Unlock()")
 	if l.stopLock != nil {
 		l.stopLock <- struct{}{}
 	}

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	dockerfilters "github.com/docker/docker/pkg/parsers/filters"
-	"github.com/docker/swarm/cluster"
-	"github.com/docker/swarm/version"
+	"github.com/polyverse-security/swarm/cluster"
+	"github.com/polyverse-security/swarm/version"
 	"github.com/gorilla/mux"
 	"github.com/samalba/dockerclient"
 	"io/ioutil"
@@ -26,6 +26,7 @@ const APIVERSION = "1.16"
 
 // GET /info
 func getInfo(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getInfo: %v", r)
 	info := dockerclient.Info{
 		Containers:        int64(len(c.cluster.Containers())),
 		Images:            int64(len(c.cluster.Images(false))),
@@ -55,6 +56,7 @@ func getInfo(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /version
 func getVersion(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getVersion: %v", r)
 	version := dockerclient.Version{
 		Version:    "swarm/" + version.VERSION,
 		ApiVersion: APIVERSION,
@@ -70,6 +72,7 @@ func getVersion(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /images/get
 func getImages(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getImages: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -109,6 +112,7 @@ func getImages(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /images/json
 func getImagesJSON(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getImagesJSON: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -170,6 +174,7 @@ func getImagesJSON(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /volumes
 func getVolumes(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getVolumes: %v", r)
 	volumes := struct {
 		Volumes []*cluster.Volume
 	}{c.cluster.Volumes()}
@@ -181,7 +186,8 @@ func getVolumes(c *context, w http.ResponseWriter, r *http.Request) {
 // GET /containers/ps
 // GET /containers/json
 func getContainersJSON(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("getContainersJSON")
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getContainersJSON: %v", r)
+	fmt.Printf("getContainersJSON: %v\n", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -324,7 +330,8 @@ func getContainersJSON(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /containers/{name:.*}/json
 func getContainerJSON(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("getContainerJSON")
+	fmt.Printf("getContainerJSON: %+v\n", r)
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getContainerJSON: %v", r)
 	name := mux.Vars(r)["name"]
 	container := c.cluster.Container(name)
 	if container == nil {
@@ -367,7 +374,8 @@ func getContainerJSON(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /containers/create
 func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("postContainersCreate")
+	fmt.Printf("postContainersCreate: %+v\n", r)
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postContainersCreate: %v", r)
 	r.ParseForm()
 	var (
 		config dockerclient.ContainerConfig
@@ -397,7 +405,7 @@ func postContainersCreate(c *context, w http.ResponseWriter, r *http.Request) {
 
 // DELETE /containers/{name:.*}
 func deleteContainers(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("deleteContainers")
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("deleteContainers: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -419,6 +427,7 @@ func deleteContainers(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST  /images/create
 func postImagesCreate(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postImagesCreate: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -460,6 +469,7 @@ func postImagesCreate(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /images/load
 func postImagesLoad(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postImagesLoad: %v", r)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
@@ -477,6 +487,7 @@ func postImagesLoad(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /events
 func getEvents(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("getEvents: %v", r)
 	c.eventsHandler.Add(r.RemoteAddr, w)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -490,6 +501,7 @@ func getEvents(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /containers/{name:.*}/exec
 func postContainersExec(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postContainersExec: %v", r)
 	name := mux.Vars(r)["name"]
 	container := c.cluster.Container(name)
 	if container == nil {
@@ -543,6 +555,7 @@ func postContainersExec(c *context, w http.ResponseWriter, r *http.Request) {
 
 // DELETE /images/{name:.*}
 func deleteImages(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("deleteImages: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -566,12 +579,14 @@ func deleteImages(c *context, w http.ResponseWriter, r *http.Request) {
 
 // GET /_ping
 func ping(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("ping")
+	fmt.Printf("ping: %+v\n", r)
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("ping: %v", r)
 	w.Write([]byte{'O', 'K'})
 }
 
 // Proxy a request to the right node
 func proxyVolume(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyVolume: %v", r)
 	var name = mux.Vars(r)["volumename"]
 	if volume := c.cluster.Volume(name); volume != nil {
 		proxy(c.tlsConfig, volume.Engine.Addr, w, r)
@@ -582,7 +597,8 @@ func proxyVolume(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to the right node
 func proxyContainer(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyContainer")
+	fmt.Printf("proxyContainer: %+v\n", r)
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyContainer: %v", r)
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -601,7 +617,8 @@ func proxyContainer(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to the right node and force refresh container
 func proxyContainerAndForceRefresh(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyContainerAndForceRefresh")
+	fmt.Printf("proxyContainerAndForceRefresh: %+v\n", r)
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyContainerAndForceRefresh: %v", r)
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -625,6 +642,7 @@ func proxyContainerAndForceRefresh(c *context, w http.ResponseWriter, r *http.Re
 
 // Proxy a request to the right node
 func proxyImage(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyImage: %v", r)
 	name := mux.Vars(r)["name"]
 
 	if image := c.cluster.Image(name); image != nil {
@@ -636,6 +654,7 @@ func proxyImage(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to the right node
 func proxyImageTagOptional(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyImageTagOptional: %v", r)
 	name := mux.Vars(r)["name"]
 
 	for _, image := range c.cluster.Images(true) {
@@ -650,6 +669,7 @@ func proxyImageTagOptional(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /images/{name:.*}/tag
 func postTagImage(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postTagImage: %v", r)
 	name := mux.Vars(r)["name"]
 
 	if err := r.ParseForm(); err != nil {
@@ -673,7 +693,7 @@ func postTagImage(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a request to a random node
 func proxyRandom(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyRandom")
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyRandom: %v", r)
 	engine, err := c.cluster.RANDOMENGINE()
 	if err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
@@ -693,6 +713,7 @@ func proxyRandom(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST  /commit
 func postCommit(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postCommit: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -726,6 +747,7 @@ func postCommit(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /build
 func postBuild(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postBuild: %v", r)
 	if err := r.ParseForm(); err != nil {
 		httpError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -770,6 +792,7 @@ func postBuild(c *context, w http.ResponseWriter, r *http.Request) {
 
 // POST /containers/{name:.*}/rename
 func postRenameContainer(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("postRenameContainer: %v", r)
 	_, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -793,7 +816,7 @@ func postRenameContainer(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Proxy a hijack request to the right node
 func proxyHijack(c *context, w http.ResponseWriter, r *http.Request) {
-	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Debug("proxyHijack")
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("proxyHijack: %v", r)
 	name, container, err := getContainerFromVars(c, mux.Vars(r))
 	if err != nil {
 		httpError(w, err.Error(), http.StatusNotFound)
@@ -811,9 +834,11 @@ func proxyHijack(c *context, w http.ResponseWriter, r *http.Request) {
 
 // Default handler for methods not supported by clustering.
 func notImplementedHandler(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("notImplementedHandler: %v", r)
 	httpError(w, "Not supported in clustering mode.", http.StatusNotImplemented)
 }
 
 func optionsHandler(c *context, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"request": fmt.Sprintf("%+v", r)}).Infof("optionsHandler: %v", r)
 	w.WriteHeader(http.StatusOK)
 }

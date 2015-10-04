@@ -9,7 +9,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/libkv"
 	"github.com/docker/libkv/store"
-	"github.com/docker/swarm/discovery"
+	"github.com/polyverse-security/swarm/discovery"
 )
 
 const (
